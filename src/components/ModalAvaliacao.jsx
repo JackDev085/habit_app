@@ -23,11 +23,13 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
   // CONTROLE DE INPUTS
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log("handleChange:", name, value);
 
     const newValue = ["sleep", "food", "pain", "fadigue", "effort"].includes(name)
       ? parseInt(value)
       : value;
 
+      
     setForm({ ...form, [name]: newValue });
   };
 
@@ -116,11 +118,11 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
 
               {dorForte && (
                 <select
-                  name="dorForte"
+                  name="severe_pain"
                   className="w-full bg-neutral-800 text-neutral-200 border border-neutral-700 p-3 rounded-lg"
                   value={form.severe_pain}
                   onChange={handleChange}
-                  required
+                  required={dorForte}
                 >
                   <option value="">Onde está a dor?</option>
                   {[
