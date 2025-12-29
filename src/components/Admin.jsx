@@ -34,8 +34,8 @@ export default function AdminView() {
     fetchData();
   }, []);
 
-  const masculino = users.filter((u) => u.sexo === "Masculino");
-  const feminino = users.filter((u) => u.sexo === "Feminino");
+  const masculino = users.filter((u) => u.sex === "Masculino");
+  const feminino = users.filter((u) => u.sex === "Feminino");
 
   return (
     <div className="min-h-screen bg-black text-white px-4 py-8">
@@ -82,11 +82,11 @@ export default function AdminView() {
                 className="p-4 bg-neutral-800 rounded-lg flex justify-between items-center hover:bg-neutral-700 transition"
               >
                 <span className="font-medium tracking-wide text-neutral-200">
-                  {user.nome} ({user.usuario})
+                  {user.name} ({user.username})
                 </span>
 
                 <button
-                  onClick={() => navigate(`/dash?user=${user.usuario}`)}
+                  onClick={() => navigate(`/dash?user=${user.username}`)}
                   className="p-2 hover:bg-neutral-600 rounded transition"
                 >
                   <img
@@ -111,15 +111,15 @@ export default function AdminView() {
                 className="p-4 bg-neutral-800 rounded-lg flex justify-between items-center hover:bg-neutral-700 transition"
               >
                 <span className="font-medium tracking-wide text-neutral-200">
-                  {user.nome} ({user.usuario})
+                  {user.name} ({user.username})
                 </span>
 
                 <button
-                  onClick={() => navigate(`/dash?user=${user.usuario}`)}
+                  onClick={() => navigate(`/dash?user=${user.username}`)}
                   className="p-2 hover:bg-neutral-600 rounded transition"
                 >
                   <img
-                    src="/assets/imgs/icons/grafico.svg"
+                    src="/grafico.svg"
                     className="w-6 invert"
                     alt="dash"
                   />

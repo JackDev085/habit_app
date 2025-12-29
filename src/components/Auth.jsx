@@ -29,12 +29,17 @@ export default function Auth() {
   })
 
   const onSubmit = async (data) => {
+    const params = new URLSearchParams()
+    params.append("username", data.username)
+    params.append("password", data.password)
+
     setErrorMsg("")
     try {
       if (isLogin) {
-        const response = await api.post("/token", {
-          username: data.username.toLowerCase(),
-          password: data.password
+        const response = await api.post("/token", params.toString(), {
+          headers:{
+            "Content-Type":"application/x-www-form-urlencoded"
+          }
         })
 
         if (response.status === 200) {

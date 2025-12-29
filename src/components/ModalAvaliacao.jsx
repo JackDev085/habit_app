@@ -5,13 +5,13 @@ import api from "../../api/api";
 
 export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
   const [form, setForm] = useState({
-    sono: 1,
-    alimentacao: 1,
-    dor: 1,
-    treino: "",
-    fadiga: 1,
-    esforco: 1,
-    dorForte: "",
+    sleep: 1,
+    food: 1,
+    pain: 1,
+    workout: "",
+    fadigue: 1,
+    effort: 1,
+    severe_pain: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    const newValue = ["sono", "alimentacao", "dor", "fadiga", "esforco"].includes(name)
+    const newValue = ["sleep", "food", "pain", "fadigue", "effort"].includes(name)
       ? parseInt(value)
       : value;
 
@@ -37,7 +37,7 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
     setError(null);
 
     try {
-      const dados = { ...form, tipo: pos ? "pos" : "pre" };
+      const dados = { ...form, type: pos ? "pos" : "pre" };
 
       const config = {
         headers: {
@@ -46,7 +46,12 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
         },
       };
 
-      await api.post("/create", dados, config);
+      if(pos){
+        await api.post("/create/pos", dados, config);
+      } else{
+        await api.post("/create/pre", dados, config);
+      }
+
 
       toast.success("Avaliação enviada com sucesso!");
       onClose();
@@ -99,7 +104,7 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
                     type="button"
                     onClick={() => {
                       setDorForte(false);
-                      setForm({ ...form, dorForte: "" });
+                      setForm({ ...form, severe_pain: "" });
                     }}
                     className={`px-4 py-2 rounded-lg border transition 
                       ${!dorForte ? "bg-green-500 text-black" : "bg-neutral-800 text-neutral-300"}`}
@@ -113,7 +118,7 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
                 <select
                   name="dorForte"
                   className="w-full bg-neutral-800 text-neutral-200 border border-neutral-700 p-3 rounded-lg"
-                  value={form.dorForte}
+                  value={form.severe_pain}
                   onChange={handleChange}
                   required
                 >
@@ -131,9 +136,9 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
             </>
           ) : (
             <>
-              <InputAvaliacao title="Sono" handleChange={handleChange} form={form} field="sono" />
-              <InputAvaliacao title="Alimentação" handleChange={handleChange} form={form} field="alimentacao" />
-              <InputAvaliacao title="Dor" handleChange={handleChange} form={form} field="dor" />
+              <InputAvaliacao title="Sono" handleChange={handleChange} form={form} field="sleep" />
+              <InputAvaliacao title="Alimentação" handleChange={handleChange} form={form} field="food" />
+              <InputAvaliacao title="Dor" handleChange={handleChange} form={form} field="pain" />
             </>
           )}
 

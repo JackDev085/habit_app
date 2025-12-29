@@ -14,7 +14,7 @@ export default function UserDash({ user: UserProp }) {
   useEffect(() => {
     const buscaDashUser = async () => {
       try {
-        const response = await api.get(`/dash?user=${user}`);
+        const response = await api.get(`/dash?username=${user}`);
         setUserDash(response.data);
       } catch (err) {
         console.error("Erro ao buscar dados do usuário:", err);
@@ -51,18 +51,10 @@ export default function UserDash({ user: UserProp }) {
       </h1>
 
       <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 shadow-lg">
-        <h2 className="text-green-400 text-xl font-semibold mb-4 tracking-wide">
-          Pós-Treino
-        </h2>
-
         <MeuGrafico pos={true} avaliacao={userDash[1]} />
       </div>
 
       <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 shadow-lg">
-        <h2 className="text-green-400 text-xl font-semibold mb-4 tracking-wide">
-          Pré-Treino
-        </h2>
-
         <MeuGrafico pos={false} avaliacao={userDash[0]} />
       </div>
 

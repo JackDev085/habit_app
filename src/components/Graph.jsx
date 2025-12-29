@@ -18,14 +18,14 @@ export default function MeuGrafico({ avaliacao, pos }) {
 
   const campos = pos
     ? [
-        { nome: "esforco", label: "Esforço" },
-        { nome: "fadiga", label: "Fadiga" },
-        { nome: "dor", label: "Dor Pós" },
+        { nome: "effort", label: "Esforço" },
+        { nome: "fadigue", label: "Fadiga" },
+        { nome: "pain", label: "Dor Pós" },
       ]
     : [
-        { nome: "sono", label: "Sono" },
-        { nome: "alimentacao", label: "Alimentação" },
-        { nome: "dor", label: "Dor" },
+        { nome: "sleep", label: "Sono" },
+        { nome: "food", label: "Alimentação" },
+        { nome: "pain", label: "Dor" },
       ];
 
   const gerarData = (campo) =>
@@ -36,7 +36,7 @@ export default function MeuGrafico({ avaliacao, pos }) {
 
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 shadow-lg">
-      <h2 className="font-semibold text-xl text-center text-white mb-4">
+      <h2 className="font-semibold text-xl text-center text-green-400 mb-4">
         Autoavaliações {pos ? "Pós-treino" : "Pré-treino"}
       </h2>
 
