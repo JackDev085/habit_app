@@ -118,6 +118,7 @@ export default function Auth() {
   return (
     <div className="min-h-screen w-full bg-black flex items-center justify-center px-6 text-white">
       <div className="w-full max-w-md bg-[#111] p-8 rounded-2xl border border-gray-700 shadow-xl">
+
         <h1 className="text-4xl font-extrabold text-center uppercase mb-8 tracking-wide">
           {isLogin ? "Entrar" : "Registrar"}
         </h1>
@@ -135,6 +136,16 @@ export default function Auth() {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+           <div className="flex flex-col gap-2">
+            <label className="text-sm text-gray-300">Usuário</label>
+            <input
+              {...register("username", { required: "Usuário é obrigatório" })}
+              type="text"
+              className="px-3 py-2 bg-black border border-gray-700 rounded-lg"
+              placeholder="seu usuário"
+            />
+          </div>
+
           {!isLogin && (
             <>
               <div className="flex flex-col gap-2">
@@ -146,6 +157,8 @@ export default function Auth() {
                   placeholder="Seu nome"
                 />
               </div>
+
+  
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm text-gray-300">Email</label>
@@ -230,15 +243,7 @@ export default function Auth() {
             </>
           )}
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-300">Usuário</label>
-            <input
-              {...register("username", { required: "Usuário é obrigatório" })}
-              type="text"
-              className="px-3 py-2 bg-black border border-gray-700 rounded-lg"
-              placeholder="seu usuário"
-            />
-          </div>
+          
 
           <div className="flex flex-col gap-2">
             <label className="text-sm text-gray-300">Senha</label>
@@ -260,8 +265,18 @@ export default function Auth() {
               >
                 <img src="/eye.svg" className="w-5 h-5" />
               </button>
+              
             </div>
+            {!isLogin &&(
+                <div>
+              <p className="p-0 m-0 text-sm text-gray-500">A senha deve conter:</p>
+              <p className="p-0 m-0 text-sm text-gray-500">- mínimo de 8 caracteres</p>
+              <p className="p-0 m-0 text-sm text-gray-500">- 1 caractere especial</p>
+              <p className="p-0 m-0 text-sm text-gray-500">- 1 digito</p>
+            </div>
+              )}
           </div>
+          
 
           {!isLogin && (
             <div className="flex flex-col gap-2">
