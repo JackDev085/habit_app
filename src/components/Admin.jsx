@@ -2,11 +2,6 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/api";
 
-/**
- * =========================
- *  API (ajuste se precisar)
- * =========================
- */
 const AdminApi = {
   async fetchUsersStats() {
     // GET /users -> { usuarios: number, usuarios_info: [...] }
@@ -96,19 +91,29 @@ function MetricChips({ obj, threshold = 2.5 }) {
 
   return (
     <ul className="flex flex-wrap gap-3">
-      {entries.map(([key, val]) => {
-        let color = ""
-        const isGood = Number(val) > threshold;
-        const isGoodReverse = Number(val) < threshold;
+  {entries.map(([key, val]) => {
+    const n = Number(val);
+    const inverted = ["pain", "pain_pos", "fadigue"].includes(key);
 
-        if (key === "pain" || key === "pain_pos" || key === "fadigue"){
-          color = isGoodReverse ? "text-green-400" : "text-red-400" ;
-          
-        }else{
-          color = isGood ? "text-green-400" : "text-red-400" ;
-        }
+    let color = "text-gray-400"; // fallback
 
-        return (
+    if (!Number.isFinite(n)) {
+      color = "text-gray-400";
+    }
+    // 1 até 2 (2 é BOM)
+    else if (n >= 1 && n <= 2) {
+      color = inverted ? "text-green-400" : "text-red-400";
+    }
+    // maior que 2 até 3 (3 é MÉDIO)
+    else if (n > 2 && n <= 3) {
+      color = "text-yellow-400";
+    }
+    // maior que 3 até 5
+    else if (n > 3 && n <= 5) {
+      color = inverted ? "text-red-400" : "text-green-400";
+    }
+
+    return (
           <li
             key={key}
             className={`bg-neutral-800 px-4 py-2 rounded-lg text-center ${color}`}
@@ -119,10 +124,13 @@ function MetricChips({ obj, threshold = 2.5 }) {
             <span className="font-bold text-lg">{val}</span>
           </li>
         );
-      })}
-    </ul>
+  })}
+</ul>
+
   );
 }
+
+
 
 function EvaluationSummary({ evaluation }) {
   const pre = evaluation?.pre ?? null;
@@ -288,8 +296,7 @@ function GroupsPanel({ groups, selectedGroupId, onSelect, onCreate, onEdit, onDe
             const active = g.id === selectedGroupId;
             return (
               <li key={g.id}>
-                <button
-                  type="button"
+                <span
                   onClick={() => onSelect(g.id)}
                   className={`w-full p-4 rounded-xl border transition flex items-center justify-between gap-3
                     ${
@@ -328,7 +335,7 @@ function GroupsPanel({ groups, selectedGroupId, onSelect, onCreate, onEdit, onDe
                       🗑️
                     </button>
                   </div>
-                </button>
+                </span>
               </li>
             );
           })}

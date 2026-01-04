@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 const api = axios.create({
   baseURL: "https://habit-backend-five.vercel.app",
   //baseURL: "http://127.0.0.1:8000",
-  timeout: 10000,
+  timeout: 20000,
   headers: {
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("token") || ""}`,

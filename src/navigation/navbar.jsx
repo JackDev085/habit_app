@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth(null);
   const location = useLocation();
   const [open, setOpen] = useState(false);
 
@@ -109,10 +109,13 @@ export default function Navbar() {
                     </Link>
                   )}
 
-                  <Link onClick={() => setOpen(false)} to={`/dash?user=${user.username}`}  className={`hover:text-green-500 transition ${location.pathname === "/home" ? "text-green-500" : ""}`}>
+                  {(user.username) && (
+                    <Link onClick={() => setOpen(false)} to={`/dash?user=${user.username}`}  className={`hover:text-green-500 transition ${location.pathname === "/dash" ? "text-green-500" : ""}`}>
                     Meu dash
-                  </Link>
-                  <Link onClick={() => setOpen(false)} to="/home" className={`hover:text-green-500 transition ${location.dash === "/home" ? "text-green-500" : ""}`}>
+                    </Link>
+                  )}
+                  
+                  <Link onClick={() => setOpen(false)} to="/home" className={`hover:text-green-500 transition ${location.pathname === "/home" ? "text-green-500" : ""}`}>
                     Início
                   </Link>
                   <button
