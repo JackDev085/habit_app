@@ -173,7 +173,7 @@ function UserCard({ user, evaluation, onOpenDash }) {
           className="p-2 hover:bg-neutral-800 rounded-xl transition border border-neutral-800"
           title="Abrir dashboard do usuário"
         >
-          <img src="/grafico.svg" className="w-6 invert" alt="dash" />
+          <img src="/grafico.svg" className="w-6" alt="dash" />
         </button>
       </div>
 

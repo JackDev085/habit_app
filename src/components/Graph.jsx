@@ -30,7 +30,7 @@ export default function MeuGrafico({ avaliacao, pos }) {
 
   const gerarData = (campo) =>
     avaliacao.map((aval) => ({
-      name: aval.data?.substring(0, 5) || "??",
+      name: aval.send_date || "??",
       valor: aval[campo] ?? 0,
     }));
 
@@ -62,6 +62,12 @@ export default function MeuGrafico({ avaliacao, pos }) {
                 tick={{ fill: "#bbb", fontSize: 12 }}
               />
               <YAxis stroke="#888" tick={{ fill: "#bbb", fontSize: 12 }} />
+
+              <YAxis
+                dataKey="name"
+                stroke="#aaa"
+                tick={{ fill: "#bbb", fontSize: 12 }}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#1f1f1f",
