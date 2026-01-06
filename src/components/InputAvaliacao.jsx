@@ -1,6 +1,6 @@
 export default function InputAvaliacao({ title, form, handleChange, field }) {
 
-  const isEsforco = field === "dor" || field === "fadiga" || field === "esforco";
+  const isEsforco = field === "pain" || field === "fadigue" || field === "effort";
 
   return (
     <div className="input-group mb-6">
@@ -8,7 +8,7 @@ export default function InputAvaliacao({ title, form, handleChange, field }) {
         {title}
       </h3>
 
-      {field === "treino" ? (
+      {field === "workout" ? (
         <div>
           <select
             className="bg-neutral-900 border border-neutral-700 text-white px-4 py-2 rounded-xl w-full focus:outline-none focus:border-green-500"

@@ -84,10 +84,10 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
           {/* CAMPOS DINÂMICOS */}
           {pos ? (
             <>
-              <InputAvaliacao title="Tipo de treino" handleChange={handleChange} form={form} field="treino" />
-              <InputAvaliacao title="Fadiga" handleChange={handleChange} form={form} field="fadiga" />
-              <InputAvaliacao title="Dor" handleChange={handleChange} form={form} field="dor" />
-              <InputAvaliacao title="Percepção de esforço" handleChange={handleChange} form={form} field="esforco" />
+              <InputAvaliacao title="Tipo de treino" handleChange={handleChange} form={form} field="workout" />
+              <InputAvaliacao title="Fadiga" handleChange={handleChange} form={form} field="fadigue" />
+              <InputAvaliacao title="Dor" handleChange={handleChange} form={form} field="pain" />
+              <InputAvaliacao title="Percepção de esforço" handleChange={handleChange} form={form} field="effort" />
 
               {/* Seleção Dor Forte */}
               <div className="text-center mt-4">
