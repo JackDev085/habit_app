@@ -162,20 +162,6 @@ function UserCard({ user, evaluation, onOpenDash }) {
         <div>
           <p className="text-lg font-semibold text-neutral-100">
             {user.name}{" "}
-
-            {`LINHA PARA SE ALTERAR 
-            #
-            #
-            #
-            #
-            #
-            #
-            #
-            #
-            #
-            #
-            #
-            `}
             <span className="text-neutral-400 font-normal">({user.username}) </span>
           </p>
           {user.sex && <p className="text-sm text-neutral-500 mt-1">{user.sex}</p>}
