@@ -1,5 +1,6 @@
 import { useState } from "react";
-import  ModalAvaliacao  from "./ModalAvaliacao";
+import ModalAvaliacao from "./ModalAvaliacao";
+import InstallPWAButton from "./InstallPWAButton";
 
 export default function Home() {
   const hoje = new Date();
@@ -10,8 +11,8 @@ export default function Home() {
 
   return (
     <div className="min-h-[90dvh] bg-black text-white flex flex-col justify-center items-center px-6">
-    
-    
+      <InstallPWAButton />
+
       <h2 className="font-bold text-2xl md:text-3xl mb-10 text-neutral-300">
         Hoje é dia <span className="text-green-400">{dia}</span>
       </h2>
@@ -37,11 +38,16 @@ export default function Home() {
       </div>
 
       {/* Modais */}
-      <ModalAvaliacao isOpen={modalPreOpen} onClose={() => setModalPreOpen(false)} pos={false} />
-      <ModalAvaliacao isOpen={modalPosOpen} onClose={() => setModalPosOpen(false)} pos={true} />
+      <ModalAvaliacao
+        isOpen={modalPreOpen}
+        onClose={() => setModalPreOpen(false)}
+        pos={false}
+      />
+      <ModalAvaliacao
+        isOpen={modalPosOpen}
+        onClose={() => setModalPosOpen(false)}
+        pos={true}
+      />
     </div>
-    
   );
-
-
 }
