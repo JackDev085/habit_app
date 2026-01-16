@@ -1,4 +1,14 @@
+import { useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+
 export default function Init() {
+  const { user, logout } = useAuth(null);
+
+  useEffect(() => {
+    if (user) {
+      window.location.href = "/home";
+    }
+  }, [user]);
   return (
     <div id="topo" className="bg-black text-white min-h-screen">
       {/* HERO */}
@@ -20,7 +30,8 @@ export default function Init() {
         </h1>
 
         <p className="text-base sm:text-lg md:text-xl text-neutral-300 max-w-xl sm:max-w-2xl mb-10 relative z-10">
-          Acompanhe sua carga pré e pós-treino com precisão e treine mais inteligente.
+          Acompanhe sua carga pré e pós-treino com precisão e treine mais
+          inteligente.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 relative z-10">
@@ -61,7 +72,8 @@ export default function Init() {
               1. Avaliação pré-treino
             </h3>
             <p className="text-neutral-400">
-              Registre fadiga, dor muscular, sono, humor e stress antes de começar.
+              Registre fadiga, dor muscular, sono, humor e stress antes de
+              começar.
             </p>
           </div>
 
@@ -93,7 +105,9 @@ export default function Init() {
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           <div className="bg-neutral-900 p-6 rounded-xl border border-neutral-800 hover:border-green-500 transition">
-            <h3 className="text-xl font-semibold mb-3">🧠 Prevenção de lesões</h3>
+            <h3 className="text-xl font-semibold mb-3">
+              🧠 Prevenção de lesões
+            </h3>
             <p className="text-neutral-400">
               Monitore alertas de fadiga e evite treinar acima do limite.
             </p>
@@ -107,15 +121,21 @@ export default function Init() {
           </div>
 
           <div className="bg-neutral-900 p-6 rounded-xl border border-neutral-800 hover:border-green-500 transition">
-            <h3 className="text-xl font-semibold mb-3">🚀 Treinos inteligentes</h3>
+            <h3 className="text-xl font-semibold mb-3">
+              🚀 Treinos inteligentes
+            </h3>
             <p className="text-neutral-400">
-              Decisões baseadas em dados tornam seus treinos muito mais eficientes.
+              Decisões baseadas em dados tornam seus treinos muito mais
+              eficientes.
             </p>
           </div>
         </div>
 
         <div className="flex justify-center mt-12">
-          <a className="text-green-500 underline hover:text-green-400" href="#topo">
+          <a
+            className="text-green-500 underline hover:text-green-400"
+            href="#topo"
+          >
             Voltar ao topo
           </a>
         </div>

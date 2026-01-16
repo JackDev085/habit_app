@@ -63,11 +63,6 @@ export default function MeuGrafico({ avaliacao, pos }) {
               />
               <YAxis stroke="#888" tick={{ fill: "#bbb", fontSize: 12 }} />
 
-              <YAxis
-                dataKey="name"
-                stroke="#aaa"
-                tick={{ fill: "#bbb", fontSize: 12 }}
-              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#1f1f1f",

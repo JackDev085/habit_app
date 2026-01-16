@@ -1,19 +1,19 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // Componentes
-import App from './App.jsx';
-import AuthProvider from './context/AuthContext.jsx';
-import Auth from './components/Auth.jsx';
-import Init from './components/Init.jsx';
-import Home from './components/Home.jsx';
-import AdminView from './components/Admin.jsx';
-import UserDash from './components/UserDash.jsx';
+import App from "./App.jsx";
+import AuthProvider from "./context/AuthContext.jsx";
+import Auth from "./components/Auth.jsx";
+import Init from "./components/Init.jsx";
+import Home from "./components/Home.jsx";
+import AdminView from "./components/Admin.jsx";
+import UserDash from "./components/UserDash.jsx";
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").then(() => {
+    navigator.serviceWorker.register("/sw.jsx").then(() => {
       console.log("Service Worker registrado!");
     });
   });
@@ -27,33 +27,32 @@ const router = createBrowserRouter([
     children: [
       {
         path: "auth",
-        element: <Auth/>
+        element: <Auth />,
       },
       {
         path: "", // Rota padrão para Home
-        element: <Init />
+        element: <Init />,
       },
       {
         path: "home", // Rota padrão para Home
-        element: <Home />
+        element: <Home />,
       },
       {
         path: "admin", // Rota padrão para Home
-        element: <AdminView />
+        element: <AdminView />,
       },
       {
         path: "dash", // Rota padrão para Home
-        element: <UserDash />
-      }
-
-    ]
-  }
+        element: <UserDash />,
+      },
+    ],
+  },
 ]);
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>
       <RouterProvider router={router} />
     </AuthProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
