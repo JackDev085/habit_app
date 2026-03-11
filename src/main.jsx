@@ -30,8 +30,9 @@ const router = createBrowserRouter([
         element: <Auth />,
       },
       {
-        path: "", // Rota padrão para Home
+        path: "/", // Rota padrão para Home
         element: <Init />,
+        index: true,
       },
       {
         path: "home", // Rota padrão para Home
