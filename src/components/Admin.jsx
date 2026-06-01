@@ -24,7 +24,11 @@ export default function AdminDashboard() {
 
   const evalMap = useMemo(() => {
     const map = new Map();
-    for (const item of groupEvals ?? []) map.set(item.username, item);
+    for (const item of groupEvals ?? []) {
+      if (item.username) {
+        map.set(item.username.toLowerCase(), item);
+      }
+    }
     return map;
   }, [groupEvals]);
 

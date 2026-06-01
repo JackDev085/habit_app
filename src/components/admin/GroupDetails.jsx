@@ -20,8 +20,10 @@ export default function GroupDetails({
     const list = [...(users ?? [])];
 
     list.sort((a, b) => {
-      const evalA = evalMap.get(a.username) || evalMap.get(a.id) || null;
-      const evalB = evalMap.get(b.username) || evalMap.get(b.id) || null;
+      const usernameA = a.username?.toLowerCase() || "";
+      const usernameB = b.username?.toLowerCase() || "";
+      const evalA = evalMap.get(usernameA) || null;
+      const evalB = evalMap.get(usernameB) || null;
 
       // Extract metrics for user A
       const preA = evalA?.pre ?? {};
@@ -34,7 +36,7 @@ export default function GroupDetails({
       const effortA = Number(posA.effort ?? 0);
 
       const severePainCountA = evalA?.muscle_in_risk
-        ? evalA.muscle_in_risk.length
+        ? Object.values(evalA.muscle_in_risk).reduce((sum, val) => sum + Number(val || 0), 0)
         : 0;
 
       // Extract metrics for user B
@@ -48,7 +50,7 @@ export default function GroupDetails({
       const effortB = Number(posB.effort ?? 0);
 
       const severePainCountB = evalB?.muscle_in_risk
-        ? evalB.muscle_in_risk.length
+        ? Object.values(evalB.muscle_in_risk).reduce((sum, val) => sum + Number(val || 0), 0)
         : 0;
 
       // Global wellness score calculation (Higher is better)
@@ -74,45 +76,73 @@ export default function GroupDetails({
       if (sortBy === "name") {
         return (a.name || "").localeCompare(b.name || "");
       }
+
+      // For behavior/wellness sorting, users without evaluations go to the end
+      if (!evalA && evalB) return 1;
+      if (evalA && !evalB) return -1;
+      if (!evalA && !evalB) {
+        return (a.name || "").localeCompare(b.name || "");
+      }
+
       if (sortBy === "lesao") {
-        // High risk: more severe pains first, then higher pain averages
-        if (severePainCountA !== severePainCountB) {
-          return severePainCountB - severePainCountA;
+        // High risk: composite score based on severe pain count and maximum pain
+        const riskScoreA = severePainCountA * 5 + Math.max(painPreA, painPosA);
+        const riskScoreB = severePainCountB * 5 + Math.max(painPreB, painPosB);
+        if (riskScoreA !== riskScoreB) {
+          return riskScoreB - riskScoreA;
         }
-        const maxPainA = Math.max(painPreA, painPosA);
-        const maxPainB = Math.max(painPreB, painPosB);
-        return maxPainB - maxPainA;
+        return (a.name || "").localeCompare(b.name || "");
       }
       if (sortBy === "melhores") {
         // Highest wellness scores first
-        return scoreB - scoreA;
+        if (scoreA !== scoreB) {
+          return scoreB - scoreA;
+        }
+        return (a.name || "").localeCompare(b.name || "");
       }
       if (sortBy === "sono") {
         // Worst sleep first (if 0 or invalid, push to the end)
-        if (sleepA === 0) return 1;
-        if (sleepB === 0) return -1;
-        return sleepA - sleepB;
+        if (sleepA === 0 && sleepB !== 0) return 1;
+        if (sleepB === 0 && sleepA !== 0) return -1;
+        if (sleepA !== sleepB) {
+          return sleepA - sleepB;
+        }
+        return (a.name || "").localeCompare(b.name || "");
       }
       if (sortBy === "nutricao") {
         // Worst nutrition first
-        if (foodA === 0) return 1;
-        if (foodB === 0) return -1;
-        return foodA - foodB;
+        if (foodA === 0 && foodB !== 0) return 1;
+        if (foodB === 0 && foodA !== 0) return -1;
+        if (foodA !== foodB) {
+          return foodA - foodB;
+        }
+        return (a.name || "").localeCompare(b.name || "");
       }
       if (sortBy === "dor") {
         // Highest pain first
-        return Math.max(painPreB, painPosB) - Math.max(painPreA, painPosA);
+        const maxPainA = Math.max(painPreA, painPosA);
+        const maxPainB = Math.max(painPreB, painPosB);
+        if (maxPainA !== maxPainB) {
+          return maxPainB - maxPainA;
+        }
+        return (a.name || "").localeCompare(b.name || "");
       }
       if (sortBy === "fadiga") {
         // Highest fatigue first
-        return fadigueB - fadigueA;
+        if (fadigueA !== fadigueB) {
+          return fadigueB - fadigueA;
+        }
+        return (a.name || "").localeCompare(b.name || "");
       }
       if (sortBy === "esforco") {
         // Highest physical effort first
-        return effortB - effortA;
+        if (effortA !== effortB) {
+          return effortB - effortA;
+        }
+        return (a.name || "").localeCompare(b.name || "");
       }
 
-      return 0;
+      return (a.name || "").localeCompare(b.name || "");
     });
 
     return list;
@@ -205,11 +235,8 @@ export default function GroupDetails({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {sortedUsers.map((u) => {
-            const evaluation =
-              evalMap.get(u.username) ||
-              evalMap.get(u.id) ||
-              evalMap.get(u.usuario) ||
-              null;
+            const usernameLower = u.username?.toLowerCase() || "";
+            const evaluation = evalMap.get(usernameLower) || null;
 
             return (
               <UserCard

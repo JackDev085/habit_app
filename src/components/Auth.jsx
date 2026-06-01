@@ -6,7 +6,8 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState("login"); // "login" | "register" | "forgot" | "reset"
+  const [resetToken, setResetToken] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [verSenha, setVerSenha] = useState(false);
 
@@ -16,7 +17,13 @@ export default function Auth() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get("r")) setIsLogin(false);
+    const token = params.get("token") || params.get("reset_token");
+    if (token) {
+      setMode("reset");
+      setResetToken(token);
+    } else if (params.get("r")) {
+      setMode("register");
+    }
   }, [location.search]);
 
   const {
@@ -58,7 +65,7 @@ export default function Auth() {
     setErrorMsg("");
 
     try {
-      if (isLogin) {
+      if (mode === "login") {
         const body = new URLSearchParams();
         body.append("username", data.username);
         body.append("password", data.password);
@@ -73,41 +80,94 @@ export default function Auth() {
         return;
       }
 
-      if (data.password !== data.confirmPassword) {
-        setErrorMsg("As senhas não coincidem.");
+      if (mode === "forgot") {
+        await api.post("/forgot-password", { email: data.email.trim() });
+        toast.success("E-mail de recuperação enviado se cadastrado!");
+        setErrorMsg("Se o e-mail estiver cadastrado, um link de redefinição de senha será enviado.");
+        reset();
         return;
       }
 
-      const payload = {
-        username: data.username.trim(),
-        name: data.name.trim(),
-        email: data.email.trim(),
-        phone: data.telefone.trim(),
-        sex: data.sexo,
-        position: data.posicao,
-        birth_date: data.data_nascimento,
-        weigth: Number(data.peso),
-        heigth: Number(data.altura),
-        password: data.password,
-      };
-
-      const response = await api.post("/register", payload);
-
-      if (response.status === 201 || response.status === 200) {
-        setErrorMsg("Conta criada com sucesso! Faça login.");
-        setIsLogin(true);
+      if (mode === "reset") {
+        if (data.password !== data.confirmPassword) {
+          setErrorMsg("As senhas não coincidem.");
+          return;
+        }
+        await api.post("/reset-password", {
+          token: resetToken,
+          new_password: data.password,
+        });
+        toast.success("Senha alterada com sucesso! Faça login.");
+        setErrorMsg("Senha redefinida com sucesso! Faça login.");
+        setMode("login");
         reset();
+        return;
+      }
+
+      if (mode === "register") {
+        if (data.password !== data.confirmPassword) {
+          setErrorMsg("As senhas não coincidem.");
+          return;
+        }
+
+        const payload = {
+          username: data.username.trim(),
+          name: data.name.trim(),
+          email: data.email.trim(),
+          phone: data.telefone.trim(),
+          sex: data.sexo,
+          position: data.posicao,
+          birth_date: data.data_nascimento,
+          weigth: Number(data.peso),
+          heigth: Number(data.altura),
+          password: data.password,
+        };
+
+        const response = await api.post("/register", payload);
+
+        if (response.status === 201 || response.status === 200) {
+          toast.success("Cadastro realizado com sucesso!");
+          setErrorMsg("Conta criada com sucesso! Faça login.");
+          setMode("login");
+          reset();
+        }
       }
     } catch (error) {
       console.error("Erro na autenticação:", error);
       setErrorMsg(normalizeApiError(error));
+      toast.error(normalizeApiError(error));
     }
   };
 
-  const toggleMode = () => {
-    setIsLogin((s) => !s);
-    reset();
-    setErrorMsg("");
+  const getTitle = () => {
+    switch (mode) {
+      case "login":
+        return "Entrar na Quadra";
+      case "register":
+        return "Criar Cadastro";
+      case "forgot":
+        return "Recuperar Senha";
+      case "reset":
+        return "Nova Senha";
+      default:
+        return "Entrar na Quadra";
+    }
+  };
+
+  const getSubmitLabel = () => {
+    if (isSubmitting) return "Carregando...";
+    switch (mode) {
+      case "login":
+        return "Entrar";
+      case "register":
+        return "Criar Cadastro";
+      case "forgot":
+        return "Enviar Link";
+      case "reset":
+        return "Redefinir Senha";
+      default:
+        return "Enviar";
+    }
   };
 
   return (
@@ -129,13 +189,13 @@ export default function Auth() {
         </span>
 
         <h1 className="text-3xl font-black text-center uppercase mb-8 tracking-tight text-white">
-          {isLogin ? "Entrar na Quadra" : "Criar Cadastro"}
+          {getTitle()}
         </h1>
 
         {errorMsg && (
           <div
             className={`mb-6 p-4 rounded-xl text-sm border font-medium ${
-              errorMsg.includes("sucesso")
+              errorMsg.includes("sucesso") || errorMsg.includes("enviado")
                 ? "bg-emerald-950/40 border-emerald-500/20 text-emerald-300"
                 : "bg-red-950/40 border-red-500/20 text-red-300"
             }`}
@@ -146,22 +206,141 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
           
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">
-              {isLogin ? "Usuário ou E-mail" : "Usuário"}
-            </label>
-            <input
-              {...register("username", { 
-                required: isLogin ? "Usuário ou e-mail é obrigatório" : "Usuário é obrigatório" 
-              })}
-              type="text"
-              className="px-4 py-3 bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
-              placeholder={isLogin ? "Ex: cestinha085 ou email@email.com" : "Ex: cestinha085"}
-            />
-          </div>
-
-          {!isLogin && (
+          {mode === "login" && (
             <>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">
+                  Usuário ou E-mail
+                </label>
+                <input
+                  {...register("username", { 
+                    required: "Usuário ou e-mail é obrigatório" 
+                  })}
+                  type="text"
+                  className="px-4 py-3 bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
+                  placeholder="Ex: cestinha085 ou email@email.com"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Senha</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("forgot");
+                      reset();
+                      setErrorMsg("");
+                    }}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 font-medium transition duration-200 focus:outline-none"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                </div>
+                <div className="relative w-full">
+                  <input
+                    {...register("password", {
+                      required: "Senha é obrigatória",
+                    })}
+                    type={verSenha ? "text" : "password"}
+                    className="px-4 py-3 w-full bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
+                    placeholder="********"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVerSenha((s) => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                    aria-label={verSenha ? "Ocultar senha" : "Mostrar senha"}
+                  >
+                    <img src="/eye.svg" className="w-5 h-5 invert opacity-70 hover:opacity-100" alt="Exibir" />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {mode === "forgot" && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">
+                E-mail Cadastrado
+              </label>
+              <input
+                {...register("email", {
+                  required: "Email obrigatório",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Email inválido",
+                  },
+                })}
+                type="email"
+                className="px-4 py-3 bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
+                placeholder="exemplo@email.com"
+              />
+            </div>
+          )}
+
+          {mode === "reset" && (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Nova Senha</label>
+                <div className="relative w-full">
+                  <input
+                    {...register("password", {
+                      required: "Senha é obrigatória",
+                      minLength: { value: 8, message: "Mínimo 8 caracteres" },
+                    })}
+                    type={verSenha ? "text" : "password"}
+                    className="px-4 py-3 w-full bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
+                    placeholder="********"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVerSenha((s) => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                    aria-label={verSenha ? "Ocultar senha" : "Mostrar senha"}
+                  >
+                    <img src="/eye.svg" className="w-5 h-5 invert opacity-70 hover:opacity-100" alt="Exibir" />
+                  </button>
+                </div>
+                <div className="mt-1 p-3 rounded-xl bg-zinc-950/80 border border-zinc-900 text-xs text-zinc-500 flex flex-col gap-1">
+                  <span className="font-semibold text-zinc-400 uppercase tracking-wide text-[10px] mb-0.5">Segurança da Senha</span>
+                  <span>• Mínimo de 8 caracteres</span>
+                  <span>• Pelo menos 1 caractere especial</span>
+                  <span>• Pelo menos 1 dígito</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Confirmar Nova Senha</label>
+                <input
+                  {...register("confirmPassword", {
+                    required: "Confirme a senha",
+                    validate: (v) => v === password || "As senhas não coincidem",
+                  })}
+                  type={verSenha ? "text" : "password"}
+                  className="px-4 py-3 bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
+                  placeholder="********"
+                />
+              </div>
+            </>
+          )}
+
+          {mode === "register" && (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">
+                  Nome de Usuário
+                </label>
+                <input
+                  {...register("username", { 
+                    required: "Usuário é obrigatório" 
+                  })}
+                  type="text"
+                  className="px-4 py-3 bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
+                  placeholder="Ex: cestinha085"
+                />
+              </div>
+
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Nome Completo</label>
                 <input
@@ -254,53 +433,49 @@ export default function Auth() {
                   />
                 </div>
               </div>
-            </>
-          )}
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Senha</label>
-            <div className="relative w-full">
-              <input
-                {...register("password", {
-                  required: "Senha é obrigatória",
-                  minLength: { value: 8, message: "Mínimo 8 caracteres" },
-                })}
-                type={verSenha ? "text" : "password"}
-                className="px-4 py-3 w-full bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
-                placeholder="********"
-              />
-              <button
-                type="button"
-                onClick={() => setVerSenha((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
-                aria-label={verSenha ? "Ocultar senha" : "Mostrar senha"}
-              >
-                <img src="/eye.svg" className="w-5 h-5 invert opacity-70 hover:opacity-100" alt="Exibir" />
-              </button>
-            </div>
-            {!isLogin && (
-              <div className="mt-1 p-3 rounded-xl bg-zinc-950/80 border border-zinc-900 text-xs text-zinc-500 flex flex-col gap-1">
-                <span className="font-semibold text-zinc-400 uppercase tracking-wide text-[10px] mb-0.5">Segurança da Senha</span>
-                <span>• Mínimo de 8 caracteres</span>
-                <span>• Pelo menos 1 caractere especial</span>
-                <span>• Pelo menos 1 dígito</span>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Senha</label>
+                <div className="relative w-full">
+                  <input
+                    {...register("password", {
+                      required: "Senha é obrigatória",
+                      minLength: { value: 8, message: "Mínimo 8 caracteres" },
+                    })}
+                    type={verSenha ? "text" : "password"}
+                    className="px-4 py-3 w-full bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
+                    placeholder="********"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVerSenha((s) => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                    aria-label={verSenha ? "Ocultar senha" : "Mostrar senha"}
+                  >
+                    <img src="/eye.svg" className="w-5 h-5 invert opacity-70 hover:opacity-100" alt="Exibir" />
+                  </button>
+                </div>
+                <div className="mt-1 p-3 rounded-xl bg-zinc-950/80 border border-zinc-900 text-xs text-zinc-500 flex flex-col gap-1">
+                  <span className="font-semibold text-zinc-400 uppercase tracking-wide text-[10px] mb-0.5">Segurança da Senha</span>
+                  <span>• Mínimo de 8 caracteres</span>
+                  <span>• Pelo menos 1 caractere especial</span>
+                  <span>• Pelo menos 1 dígito</span>
+                </div>
               </div>
-            )}
-          </div>
 
-          {!isLogin && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Confirmar Senha</label>
-              <input
-                {...register("confirmPassword", {
-                  required: "Confirme a senha",
-                  validate: (v) => v === password || "As senhas não coincidem",
-                })}
-                type={verSenha ? "text" : "password"}
-                className="px-4 py-3 bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
-                placeholder="********"
-              />
-            </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Confirmar Senha</label>
+                <input
+                  {...register("confirmPassword", {
+                    required: "Confirme a senha",
+                    validate: (v) => v === password || "As senhas não coincidem",
+                  })}
+                  type={verSenha ? "text" : "password"}
+                  className="px-4 py-3 bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
+                  placeholder="********"
+                />
+              </div>
+            </>
           )}
 
           <button
@@ -308,20 +483,59 @@ export default function Auth() {
             disabled={isSubmitting}
             className="w-full py-3.5 mt-4 bg-emerald-500 hover:bg-emerald-400 text-black rounded-xl text-base font-extrabold shadow-lg shadow-emerald-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Carregando quadra..." : isLogin ? "Entrar" : "Criar Cadastro"}
+            {getSubmitLabel()}
           </button>
         </form>
 
-        <p className="text-center text-zinc-400 mt-6 text-sm">
-          {isLogin ? "Ainda não possui conta? " : "Já possui conta? "}
-          <button
-            type="button"
-            onClick={toggleMode}
-            className="text-emerald-400 hover:text-emerald-300 font-bold underline ml-1"
-          >
-            {isLogin ? "Registre-se" : "Entrar"}
-          </button>
-        </p>
+        {mode === "login" && (
+          <p className="text-center text-zinc-400 mt-6 text-sm">
+            Ainda não possui conta?{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setMode("register");
+                reset();
+                setErrorMsg("");
+              }}
+              className="text-emerald-400 hover:text-emerald-300 font-bold underline ml-1"
+            >
+              Registre-se
+            </button>
+          </p>
+        )}
+
+        {mode === "register" && (
+          <p className="text-center text-zinc-400 mt-6 text-sm">
+            Já possui conta?{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login");
+                reset();
+                setErrorMsg("");
+              }}
+              className="text-emerald-400 hover:text-emerald-300 font-bold underline ml-1"
+            >
+              Entrar
+            </button>
+          </p>
+        )}
+
+        {(mode === "forgot" || mode === "reset") && (
+          <p className="text-center text-zinc-400 mt-6 text-sm">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login");
+                reset();
+                setErrorMsg("");
+              }}
+              className="text-emerald-400 hover:text-emerald-300 font-bold underline"
+            >
+              Voltar para o Login
+            </button>
+          </p>
+        )}
 
       </div>
     </div>

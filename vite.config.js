@@ -46,6 +46,9 @@ export default defineConfig({
         clientsClaim: true,
         skipWaiting: true,
         importScripts: ['/sw-push.js']
+      },
+      devOptions: {
+        enabled: true
       }
     })
   ],

@@ -3,7 +3,7 @@ import api from '../../api/api';
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding)
-    .replace(/\-/g, '+')
+    .replace(/-/g, '+')
     .replace(/_/g, '/');
 
   const rawData = window.atob(base64);
@@ -28,7 +28,14 @@ export async function registerPushNotifications() {
       return;
     }
 
-    const registration = await navigator.serviceWorker.ready;
+    let registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) {
+      console.log('No service worker registered, registering /sw.js...');
+      registration = await navigator.serviceWorker.register('/sw.js');
+    }
+
+    // Wait for the service worker to become ready and get the active registration
+    registration = await navigator.serviceWorker.ready;
     
     // Check if subscription already exists
     let subscription = await registration.pushManager.getSubscription();
@@ -49,7 +56,7 @@ export async function registerPushNotifications() {
     }
 
     // Always send/update subscription details to backend in case it changed or for user association
-    await api.post('/notifications/subscribe', subscription);
+    await api.post('/notifications/subscribe', subscription.toJSON());
     console.log('Push notification subscribed successfully');
   } catch (error) {
     console.error('Error during push subscription:', error);
