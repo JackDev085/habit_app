@@ -1,43 +1,65 @@
 import { useMemo } from "react";
+
+const labelMap = {
+  sleep: "Sono",
+  food: "Nutrição",
+  pain: "Dor",
+  fadigue: "Fadiga",
+  effort: "Esforço",
+  workout: "Treino",
+  severe_pain: "Dor Forte",
+};
+
 export default function MetricChips({ obj }) {
-  const entries = useMemo(() => Object.entries(obj ?? {}), [obj]);
+  const entries = useMemo(() => {
+    // Filtra campos internos ou vazios
+    return Object.entries(obj ?? {}).filter(
+      ([key, val]) => val !== null && val !== "" && key !== "id" && key !== "user_id" && key !== "send_date"
+    );
+  }, [obj]);
 
   if (!entries.length)
-    return <p className="text-neutral-500 text-sm">Sem dados</p>;
+    return <p className="text-zinc-500 text-xs italic">Sem registros para o dia</p>;
 
   return (
-    <ul className="flex flex-wrap gap-3">
+    <ul className="flex flex-wrap gap-2.5">
       {entries.map(([key, val]) => {
+        const label = labelMap[key] || key;
         const n = Number(val);
-        const inverted = ["pain", "pain_pos", "fadigue"].includes(key);
+        const inverted = ["pain", "pain_pos", "fadigue", "effort"].includes(key);
 
-        let color = "text-gray-400"; // fallback
+        let badgeStyle = "bg-zinc-900 border-zinc-800 text-zinc-400"; // fallback
 
-        if (!Number.isFinite(n)) {
-          color = "text-gray-400";
-        }
-        // 1 até 2 (2 é BOM)
-        else if (n >= 1 && n <= 2) {
-          color = inverted ? "text-green-400" : "text-red-400";
-        }
-        // maior que 2 até 3 (3 é MÉDIO)
-        else if (n > 2 && n <= 3) {
-          color = "text-yellow-400";
-        }
-        // maior que 3 até 5
-        else if (n > 3 && n <= 5) {
-          color = inverted ? "text-red-400" : "text-green-400";
+        if (key === "severe_pain") {
+          badgeStyle = "bg-red-950/40 border-red-500/20 text-red-400";
+        } else if (key === "workout") {
+          badgeStyle = "bg-blue-950/40 border-blue-500/20 text-blue-400";
+        } else if (Number.isFinite(n)) {
+          // BOM para bem-estar, RUIM para dor/fadiga/esforço/dor_pos
+          if (n < 2.5) {
+            badgeStyle = inverted
+              ? "bg-emerald-950/40 border-emerald-500/20 text-emerald-400"
+              : "bg-red-950/40 border-red-500/20 text-red-400";
+          }
+          // ALERTA / MÉDIO
+          else if (n >= 2.5 && n < 3.5) {
+            badgeStyle = "bg-amber-950/40 border-amber-500/20 text-amber-400";
+          }
+          // RUIM para bem-estar, BOM para dor/fadiga/esforço/dor_pos
+          else {
+            badgeStyle = inverted
+              ? "bg-red-950/40 border-red-500/20 text-red-400"
+              : "bg-emerald-950/40 border-emerald-500/20 text-emerald-400";
+          }
         }
 
         return (
           <li
             key={key}
-            className={`bg-neutral-800 px-4 py-2 rounded-lg text-center ${color}`}
+            className={`border px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs font-semibold ${badgeStyle}`}
           >
-            <span className="uppercase text-xs tracking-wide block text-neutral-400">
-              {key}
-            </span>
-            <span className="font-bold text-lg">{val}</span>
+            <span className="opacity-70 font-medium uppercase tracking-wider text-[10px]">{label}:</span>
+            <span className="font-bold">{val}</span>
           </li>
         );
       })}

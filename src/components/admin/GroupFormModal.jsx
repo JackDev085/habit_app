@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+
 export default function GroupFormModal({
   open,
   mode,
@@ -18,35 +19,41 @@ export default function GroupFormModal({
   const isEdit = mode === "edit";
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-      <div className="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-2xl p-6">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-neutral-100">
-            {isEdit ? "Editar grupo" : "Criar grupo"}
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="w-full max-w-md glass-panel border border-zinc-800 rounded-2xl p-6 shadow-2xl relative">
+        <div className="flex items-center justify-between gap-3 border-b border-zinc-950 pb-4">
+          <h3 className="text-lg font-bold text-white uppercase tracking-wider">
+            {isEdit ? "Editar Grupo" : "Criar Novo Grupo"}
           </h3>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-200"
+            className="text-zinc-500 hover:text-white p-1 rounded-lg transition"
+            aria-label="Fechar modal"
           >
-            ✕
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
           </button>
         </div>
 
-        <label className="block mt-5 text-sm text-neutral-300">
-          Nome do grupo
+        <div className="mt-5">
+          <label className="block text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-2">
+            Nome do Grupo
+          </label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-2 w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 outline-none focus:border-green-500"
+            className="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
             placeholder="Ex: Sub-17 Masculino"
+            autoFocus
           />
-        </label>
+        </div>
 
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-zinc-950">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-neutral-800 hover:bg-neutral-900 transition"
+            className="px-4 py-2 rounded-xl bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 text-zinc-400 hover:text-white transition text-xs font-bold uppercase tracking-wider"
             disabled={loading}
           >
             Cancelar
@@ -54,7 +61,7 @@ export default function GroupFormModal({
           <button
             type="button"
             onClick={() => onSubmit({ name })}
-            className="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-500 transition font-semibold"
+            className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading || !name.trim()}
           >
             {loading ? "Salvando..." : "Salvar"}

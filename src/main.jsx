@@ -11,14 +11,6 @@ import Home from "./components/Home.jsx";
 import AdminView from "./components/Admin.jsx";
 import UserDash from "./components/UserDash.jsx";
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").then(() => {
-      console.log("Service Worker registrado!");
-    });
-  });
-}
-
 // Configure as rotas
 const router = createBrowserRouter([
   {

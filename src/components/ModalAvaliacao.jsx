@@ -29,7 +29,6 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
       ? parseInt(value)
       : value;
 
-      
     setForm({ ...form, [name]: newValue });
   };
 
@@ -41,19 +40,11 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
     try {
       const dados = { ...form, type: pos ? "pos" : "pre" };
 
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("acess_token") || ""}`,
-        },
-      };
-
-      if(pos){
-        await api.post("/create/pos", dados, config);
-      } else{
-        await api.post("/create/pre", dados, config);
+      if (pos) {
+        await api.post("/create/pos", dados);
+      } else {
+        await api.post("/create/pre", dados);
       }
-
 
       toast.success("Avaliação enviada com sucesso!");
       onClose();
@@ -67,37 +58,37 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 px-4 py-10 overflow-y-auto"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 px-4 py-10 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-neutral-900 w-full max-w-lg rounded-xl p-6 border border-neutral-800 shadow-2xl"
+        className="glass-panel w-full max-w-lg rounded-2xl p-6 border border-zinc-800 shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Título */}
-        <h2 className="text-2xl font-bold text-green-400 mb-6 text-center">
+        <h2 className="text-2xl font-black text-emerald-400 mb-6 text-center uppercase tracking-tight">
           {pos ? "Avaliação Pós-Treino" : "Avaliação Pré-Treino"}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
 
           {/* CAMPOS DINÂMICOS */}
           {pos ? (
             <>
               <InputAvaliacao title="Tipo de treino" handleChange={handleChange} form={form} field="workout" />
               <InputAvaliacao title="Fadiga" handleChange={handleChange} form={form} field="fadigue" />
-              <InputAvaliacao title="Dor" handleChange={handleChange} form={form} field="pain" />
+              <InputAvaliacao title="Dor Muscular" handleChange={handleChange} form={form} field="pain" />
               <InputAvaliacao title="Percepção de esforço" handleChange={handleChange} form={form} field="effort" />
 
               {/* Seleção Dor Forte */}
-              <div className="text-center mt-4">
-                <p className="text-neutral-300 mb-2">Você está com dor forte?</p>
-                <div className="flex gap-4 justify-center">
+              <div className="text-center mt-4 p-4 rounded-xl bg-zinc-950/60 border border-zinc-900">
+                <p className="text-sm font-semibold text-zinc-300 mb-3">Você está com dor forte?</p>
+                <div className="flex gap-3 justify-center">
                   <button
                     type="button"
                     onClick={() => setDorForte(true)}
-                    className={`px-4 py-2 rounded-lg border transition 
-                      ${dorForte ? "bg-green-500 text-black" : "bg-neutral-800 text-neutral-300"}`}
+                    className={`px-6 py-2 rounded-lg border transition font-bold text-xs uppercase tracking-wider
+                      ${dorForte ? "bg-emerald-500 text-black border-emerald-500" : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white"}`}
                   >
                     Sim
                   </button>
@@ -108,8 +99,8 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
                       setDorForte(false);
                       setForm({ ...form, severe_pain: "" });
                     }}
-                    className={`px-4 py-2 rounded-lg border transition 
-                      ${!dorForte ? "bg-green-500 text-black" : "bg-neutral-800 text-neutral-300"}`}
+                    className={`px-6 py-2 rounded-lg border transition font-bold text-xs uppercase tracking-wider
+                      ${!dorForte ? "bg-emerald-500 text-black border-emerald-500" : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white"}`}
                   >
                     Não
                   </button>
@@ -117,43 +108,46 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
               </div>
 
               {dorForte && (
-                <select
-                  name="severe_pain"
-                  className="w-full bg-neutral-800 text-neutral-200 border border-neutral-700 p-3 rounded-lg"
-                  value={form.severe_pain}
-                  onChange={handleChange}
-                  required={dorForte}
-                >
-                  <option value="">Onde está a dor?</option>
-                  {[
-                    "Ombro Esquerdo", "Ombro Direito", "Ombros (Ambos)",
-                    "Joelho Esquerdo", "Joelho Direito", "Joelhos (Ambos)",
-                    "Tornozelo Esquerdo", "Tornozelo Direito", "Tornozelos (Ambos)",
-                    "Coluna Lombar", "Coluna Cervical", "Quadril", "Pulso", "Cabeça", "Outro",
-                  ].map((parte, i) => (
-                    <option key={i} value={parte}>{parte}</option>
-                  ))}
-                </select>
+                <div className="flex flex-col gap-1.5 mt-2">
+                  <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Região da Dor</label>
+                  <select
+                    name="severe_pain"
+                    className="w-full bg-zinc-950 text-zinc-200 border border-zinc-800 p-3 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    value={form.severe_pain}
+                    onChange={handleChange}
+                    required={dorForte}
+                  >
+                    <option value="">Selecione a região dolorida</option>
+                    {[
+                      "Ombro Esquerdo", "Ombro Direito", "Ombros (Ambos)",
+                      "Joelho Esquerdo", "Joelho Direito", "Joelhos (Ambos)",
+                      "Tornozelo Esquerdo", "Tornozelo Direito", "Tornozelos (Ambos)",
+                      "Coluna Lombar", "Coluna Cervical", "Quadril", "Pulso", "Cabeça", "Outro",
+                    ].map((parte, i) => (
+                      <option key={i} value={parte}>{parte}</option>
+                    ))}
+                  </select>
+                </div>
               )}
             </>
           ) : (
             <>
               <InputAvaliacao title="Sono" handleChange={handleChange} form={form} field="sleep" />
               <InputAvaliacao title="Alimentação" handleChange={handleChange} form={form} field="food" />
-              <InputAvaliacao title="Dor" handleChange={handleChange} form={form} field="pain" />
+              <InputAvaliacao title="Dor Muscular" handleChange={handleChange} form={form} field="pain" />
             </>
           )}
 
           {/* ERRO */}
           {error && (
-            <p className="text-red-400 text-sm text-center mt-2">{error}</p>
+            <p className="text-red-400 text-sm text-center font-medium mt-2">{error}</p>
           )}
 
           {/* BOTÕES */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 border-t border-zinc-950">
             <button
               type="button"
-              className="px-4 py-2 rounded-lg bg-neutral-800 text-neutral-300 hover:bg-neutral-700 transition"
+              className="px-4 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-white transition text-xs font-bold uppercase tracking-wider"
               onClick={onClose}
             >
               Fechar
@@ -162,10 +156,10 @@ export default function ModalAvaliacao({ isOpen, onClose, pos = false }) {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-lg bg-green-500 text-black font-semibold hover:bg-green-400 
-              transition disabled:bg-green-800 disabled:cursor-not-allowed"
+              className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs uppercase tracking-wider
+              transition shadow-lg shadow-emerald-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Enviando..." : "Enviar"}
+              {loading ? "Enviando..." : "Enviar Avaliação"}
             </button>
           </div>
         </form>

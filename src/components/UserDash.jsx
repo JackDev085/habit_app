@@ -27,34 +27,46 @@ export default function UserDash({ user: UserProp }) {
 
   if (error)
     return (
-      <div className="text-center text-red-500 font-semibold mt-10">
-        Erro ao carregar dados do gráfico
+      <div className="text-center text-red-500 font-semibold mt-10 p-6 glass-panel rounded-xl max-w-md mx-auto">
+        Erro ao carregar dados do gráfico. Por favor, tente novamente mais tarde.
       </div>
     );
 
   if (!userDash)
     return (
-      <div className="flex min-h-[80dvh] bg-black justify-center">
-        <img
-          src="/spin.svg"
-          alt="Carregando"
-          className="w-12 h-12 mt-10 invert"
-        />
+      <div className="flex min-h-[80vh] bg-[#050505] justify-center items-center">
+        <div className="flex flex-col items-center gap-3">
+          <img
+            src="/spin.svg"
+            alt="Carregando"
+            className="w-10 h-10 animate-spin invert opacity-80"
+          />
+          <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Carregando métricas...</span>
+        </div>
       </div>
     );
 
   return (
-    <div className="min-h-[80dvh] bg-black text-white p-4 flex flex-col gap-8">
+    <div className="min-h-[85vh] bg-[#050505] bg-tactical text-white p-6 md:p-10 flex flex-col gap-8 selection:bg-emerald-500 selection:text-black">
+      
+      {/* Dashboard Title */}
+      <div className="text-center max-w-md mx-auto mb-4">
+        <span className="text-emerald-500 font-bold uppercase tracking-widest text-xs">Métricas de Performance</span>
+        <h1 className="text-3xl sm:text-4xl font-black text-center mt-1 text-white tracking-tight uppercase">
+          Estatísticas de @{user}
+        </h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          Acompanhamento dinâmico das respostas de sobrecarga física e recuperação.
+        </p>
+      </div>
 
-      <h1 className="text-3xl font-bold text-center mt-4 text-neutral-300 tracking-wide">
-        Desempenho do Atleta
-      </h1>
-
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 shadow-lg">
+      {/* Post-Training charts */}
+      <div className="glass-panel rounded-2xl p-6 border border-zinc-800/80 shadow-2xl">
         <MeuGrafico pos={true} avaliacao={userDash[1]} />
       </div>
 
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 shadow-lg">
+      {/* Pre-Training charts */}
+      <div className="glass-panel rounded-2xl p-6 border border-zinc-800/80 shadow-2xl">
         <MeuGrafico pos={false} avaliacao={userDash[0]} />
       </div>
 

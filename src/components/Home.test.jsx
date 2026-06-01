@@ -23,7 +23,7 @@ describe('Home Component', () => {
     
     // Verify modal content is shown
     // ModalAvaliacao renders an h2 with the title
-    const modalTitle = screen.getByRole('heading', { name: "Avaliação Pré-Treino" });
+    const modalTitle = screen.getByRole('heading', { name: "Avaliação Pré-Treino", level: 2 });
     expect(modalTitle).toBeInTheDocument();
   });
 
@@ -37,7 +37,7 @@ describe('Home Component', () => {
     fireEvent.click(posTreinoBtn);
     
     // Verify modal content is shown
-    const modalTitle = screen.getByRole('heading', { name: "Avaliação Pós-Treino" });
+    const modalTitle = screen.getByRole('heading', { name: "Avaliação Pós-Treino", level: 2 });
     expect(modalTitle).toBeInTheDocument();
   });
 });

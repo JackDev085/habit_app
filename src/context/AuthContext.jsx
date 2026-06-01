@@ -14,24 +14,41 @@ export default function AuthProvider({ children }) {
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user_data");
 
-    if (token && userData) {
-      setUser(JSON.parse(userData));
+    if (token) {
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
+      
+      // Busca perfil atualizado em background para manter sincronismo
+      api.get("/me")
+        .then((response) => {
+          if (response.status === 200) {
+            localStorage.setItem("user_data", JSON.stringify(response.data));
+            setUser(response.data);
+          }
+        })
+        .catch((err) => {
+          console.error("Erro ao sincronizar perfil na inicialização:", err);
+        });
     }
 
     setLoading(false);
   }, []);
 
   // Login
-  const login = (token, userData) => {
+  const login = async (token) => {
     localStorage.setItem("token", token);
-    api.get("/me").then(response=>{
-        if(response.status===200){
-            userData = (response.data)
-            localStorage.setItem("user_data", JSON.stringify(response.data));
-
-        }
-    })
-    setUser(userData);
+    try {
+      const response = await api.get("/me");
+      if (response.status === 200) {
+        localStorage.setItem("user_data", JSON.stringify(response.data));
+        setUser(response.data);
+        return response.data;
+      }
+    } catch (err) {
+      console.error("Error loading user profile on login", err);
+      throw err;
+    }
   };
 
   // Logout

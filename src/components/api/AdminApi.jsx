@@ -43,9 +43,11 @@ export const AdminApi = {
     return data ?? [];
   },
 
-  async fetchGroupEvaluations(groupId) {
+  async fetchGroupEvaluations(groupId, months = 1) {
     // GET /groups/:id/evaluations -> [{ usuario, pre:{}, pos:{} }, ...]
-    const { data } = await api.get(`/groups/${groupId}/evaluations`);
+    const { data } = await api.get(`/groups/${groupId}/evaluations`, {
+      params: { months }
+    });
     return data ?? [];
   },
 

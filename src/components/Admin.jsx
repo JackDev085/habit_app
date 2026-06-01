@@ -18,6 +18,7 @@ export default function AdminDashboard() {
   const [allUsers, setAllUsers] = useState([]);
   const [groupUsers, setGroupUsers] = useState([]);
   const [groupEvals, setGroupEvals] = useState([]);
+  const [filterMonths, setFilterMonths] = useState(1);
 
   const evalMap = useMemo(() => {
     const map = new Map();
@@ -64,7 +65,7 @@ export default function AdminDashboard() {
         AdminApi.fetchGroups(),
       ]);
 
-      const totalUsers = usersStats?.usuarios ?? 0;
+      const totalUsers = Array.isArray(usersStats) ? usersStats.length : (usersStats?.usuarios ?? 0);
       const list = groupsList ?? [];
 
       setGroups(list);
@@ -82,7 +83,7 @@ export default function AdminDashboard() {
     }
   }, [selectedGroupId]);
 
-  const loadGroupDetails = useCallback(async (groupId) => {
+  const loadGroupDetails = useCallback(async (groupId, months) => {
     if (!groupId) return;
     setError("");
     try {
@@ -90,7 +91,7 @@ export default function AdminDashboard() {
 
       const [users, evals] = await Promise.all([
         AdminApi.fetchGroupUsers(groupId),
-        AdminApi.fetchGroupEvaluations(groupId),
+        AdminApi.fetchGroupEvaluations(groupId, months),
       ]);
 
       setGroupUsers(users ?? []);
@@ -107,10 +108,10 @@ export default function AdminDashboard() {
     loadHeaderAndGroups();
   }, []);
 
-  // Carrega detalhes do grupo quando muda
+  // Carrega detalhes do grupo quando muda ou o filtro de data muda
   useEffect(() => {
-    loadGroupDetails(selectedGroupId);
-  }, [selectedGroupId, loadGroupDetails]);
+    loadGroupDetails(selectedGroupId, filterMonths);
+  }, [selectedGroupId, filterMonths, loadGroupDetails]);
 
   // Carrega todos os usuários (para gerenciar membros)
   useEffect(() => {
@@ -216,7 +217,7 @@ export default function AdminDashboard() {
       setBusyUserId(userId);
       try {
         await AdminApi.addUserToGroup(selectedGroupId, userId);
-        await loadGroupDetails(selectedGroupId);
+        await loadGroupDetails(selectedGroupId, filterMonths);
       } catch (e) {
         console.error(e);
         setError(
@@ -226,7 +227,7 @@ export default function AdminDashboard() {
         setBusyUserId(null);
       }
     },
-    [selectedGroupId, loadGroupDetails],
+    [selectedGroupId, loadGroupDetails, filterMonths],
   );
 
   const removeMember = useCallback(
@@ -236,7 +237,7 @@ export default function AdminDashboard() {
       setBusyUserId(userId);
       try {
         await AdminApi.removeUserFromGroup(selectedGroupId, userId);
-        await loadGroupDetails(selectedGroupId);
+        await loadGroupDetails(selectedGroupId, filterMonths);
       } catch (e) {
         console.error(e);
         setError(
@@ -246,7 +247,7 @@ export default function AdminDashboard() {
         setBusyUserId(null);
       }
     },
-    [selectedGroupId, loadGroupDetails],
+    [selectedGroupId, loadGroupDetails, filterMonths],
   );
 
   const onOpenUserDash = useCallback(
@@ -257,59 +258,84 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white px-4 py-8">
-      <Link
-        to="/"
-        className="text-green-400 hover:text-green-300 transition font-medium"
-      >
-        ← voltar
-      </Link>
-
-      <h1 className="text-4xl font-bold text-center mb-10 mt-4 tracking-wide text-neutral-200">
-        Painel Administrativo
-      </h1>
-
-      <div className="grid gap-4 md:grid-cols-2 mb-8">
-        <StatCard
-          label="Usuários"
-          value={loadingHeader ? "..." : stats.totalUsers}
-          icon="👤"
-        />
-        <StatCard
-          label="Grupos"
-          value={loadingGroups ? "..." : stats.totalGroups}
-          icon="👥"
-        />
+    <div className="min-h-screen bg-[#050505] bg-tactical text-white px-6 py-8 selection:bg-emerald-500 selection:text-black">
+      
+      {/* Voltar button */}
+      <div className="max-w-7xl mx-auto mb-8">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-400 hover:text-white hover:border-zinc-800 transition text-xs font-bold uppercase tracking-wider"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Voltar ao Início
+        </Link>
       </div>
 
-      {error && <p className="text-red-500 text-center mb-6">{error}</p>}
+      <div className="max-w-7xl mx-auto">
+        {/* Title */}
+        <div className="text-center mb-12">
+          <span className="text-emerald-500 font-bold uppercase tracking-widest text-xs">Comissão Técnica</span>
+          <h1 className="text-3xl sm:text-5xl font-black text-white mt-1 uppercase tracking-tight">
+            Painel de Controle
+          </h1>
+          <p className="text-zinc-400 text-sm mt-2 max-w-sm mx-auto">
+            Monitore a carga interna dos atletas e gerencie equipes de treino.
+          </p>
+        </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <GroupsPanel
-            groups={groups}
-            selectedGroupId={selectedGroupId}
-            onSelect={setSelectedGroupId}
-            onCreate={openCreateGroup}
-            onEdit={openEditGroup}
-            onDelete={openDeleteGroup}
-            onSendEmail={sendEmailGroup}
-            loading={loadingGroups}
+        {/* Stats Grid */}
+        <div className="grid gap-6 sm:grid-cols-2 mb-8">
+          <StatCard
+            label="Total de Atletas"
+            value={loadingHeader ? "..." : stats.totalUsers}
+            icon="👤"
+          />
+          <StatCard
+            label="Grupos Ativos"
+            value={loadingGroups ? "..." : stats.totalGroups}
+            icon="👥"
           />
         </div>
 
-        <div className="lg:col-span-2">
-          <GroupDetails
-            group={selectedGroup}
-            users={groupUsers}
-            evalMap={evalMap}
-            isLoading={loadingDetails}
-            onOpenUserDash={onOpenUserDash}
-            onOpenMembers={() => setMembersModalOpen(true)}
-          />
+        {error && (
+          <div className="mb-6 p-4 bg-red-950/40 border border-red-500/20 text-red-300 rounded-xl text-sm font-medium text-center">
+            {error}
+          </div>
+        )}
+
+        {/* Main Panels Grid */}
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <GroupsPanel
+              groups={groups}
+              selectedGroupId={selectedGroupId}
+              onSelect={setSelectedGroupId}
+              onCreate={openCreateGroup}
+              onEdit={openEditGroup}
+              onDelete={openDeleteGroup}
+              onSendEmail={sendEmailGroup}
+              loading={loadingGroups}
+            />
+          </div>
+
+          <div className="lg:col-span-2">
+            <GroupDetails
+              group={selectedGroup}
+              users={groupUsers}
+              evalMap={evalMap}
+              isLoading={loadingDetails}
+              onOpenUserDash={onOpenUserDash}
+              onOpenMembers={() => setMembersModalOpen(true)}
+              filterMonths={filterMonths}
+              onFilterChange={setFilterMonths}
+            />
+          </div>
         </div>
       </div>
 
+      {/* Modals & Dialogs */}
       <GroupFormModal
         open={groupModalOpen}
         mode={groupModalMode}
@@ -321,8 +347,8 @@ export default function AdminDashboard() {
 
       <ConfirmDialog
         open={confirmOpen}
-        title="Excluir grupo"
-        description={`Tem certeza que deseja excluir o grupo "${groupDeleting?.name}"?`}
+        title="Excluir Grupo de Treino"
+        description={`Tem certeza absoluta que deseja excluir o grupo "${groupDeleting?.name}"? Esta ação removerá todos os vínculos atuais dos atletas.`}
         onCancel={() => setConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
         loading={deletingGroup}
@@ -333,12 +359,12 @@ export default function AdminDashboard() {
 
       <ConfirmDialog
         open={confirmEmailOpen}
-        title="Enviar Email"
-        description={`Tem certeza que deseja enviar o e-mail de lembrete para todos os usuários do grupo "${groupSendEmail?.name}"?`}
+        title="Enviar E-mail de Alerta"
+        description={`Tem certeza que deseja enviar o e-mail de lembrete de carga para todos os usuários ativos do grupo "${groupSendEmail?.name}"?`}
         onCancel={() => setConfirmEmailOpen(false)}
         onConfirm={handleConfirmSendEmail}
         loading={sendingEmail}
-        confirmText="Enviar"
+        confirmText="Enviar Alerta"
         confirmLoadingText="Enviando..."
         confirmColor="blue"
       />
@@ -352,6 +378,7 @@ export default function AdminDashboard() {
         onRemove={removeMember}
         busyUserId={busyUserId}
       />
+      
     </div>
   );
 }
