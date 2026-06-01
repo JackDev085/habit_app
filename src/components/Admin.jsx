@@ -7,6 +7,7 @@ import GroupDetails from "./admin/GroupDetails";
 import GroupFormModal from "./admin/GroupFormModal";
 import ConfirmDialog from "./admin/ConfirmDialog";
 import ManageMembersModal from "./admin/ManageMembersModal";
+import SendNotificationModal from "./admin/SendNotificationModal";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function AdminDashboard() {
   const [groupUsers, setGroupUsers] = useState([]);
   const [groupEvals, setGroupEvals] = useState([]);
   const [filterMonths, setFilterMonths] = useState(1);
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false);
 
   const evalMap = useMemo(() => {
     const map = new Map();
@@ -286,7 +288,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 mb-8">
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
           <StatCard
             label="Total de Atletas"
             value={loadingHeader ? "..." : stats.totalUsers}
@@ -297,6 +299,21 @@ export default function AdminDashboard() {
             value={loadingGroups ? "..." : stats.totalGroups}
             icon="👥"
           />
+          <div 
+            onClick={() => setNotificationModalOpen(true)}
+            className="glass-panel border border-zinc-800 hover:border-emerald-500/40 hover:bg-emerald-950/5 transition duration-300 p-6 rounded-2xl flex items-center justify-between cursor-pointer group shadow-lg"
+          >
+            <div>
+              <span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Ferramentas</span>
+              <h3 className="text-lg font-black text-white mt-1 group-hover:text-emerald-400 transition">
+                Enviar Notificação
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1">Dispare alertas push para o app dos atletas.</p>
+            </div>
+            <div className="text-2xl p-3 bg-zinc-950 border border-zinc-800 rounded-xl group-hover:border-emerald-500/20 group-hover:bg-emerald-950/20 transition">
+              🔔
+            </div>
+          </div>
         </div>
 
         {error && (
@@ -377,6 +394,11 @@ export default function AdminDashboard() {
         onAdd={addMember}
         onRemove={removeMember}
         busyUserId={busyUserId}
+      />
+
+      <SendNotificationModal
+        open={notificationModalOpen}
+        onClose={() => setNotificationModalOpen(false)}
       />
       
     </div>

@@ -1,19 +1,28 @@
 import './index.css'
-import { Outlet } from 'react-router-dom'; // Adicione a importação do Outlet
+import { useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-// NAVBAR E FOOTER GLOBAIS + BREADCRUMB DINÂMICO
 import Navbar from './navigation/navbar';
 import Breadcrumb from './navigation/bedcrumb';
 import Footer from './footer/footer';
+import { useAuth } from './context/AuthContext';
+import { registerPushNotifications } from './utils/notifications';
 
 function App() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      registerPushNotifications();
+    }
+  }, [user]);
+
   return (
     <>
       <Navbar />
-    <ToastContainer />
-
+      <ToastContainer />
       <Breadcrumb />
-      <Outlet /> {/* Aqui as rotas filhas serão renderizadas */}
+      <Outlet />
       <Footer />
     </>
   );

@@ -147,12 +147,16 @@ export default function Auth() {
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
           
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">Usuário</label>
+            <label className="text-xs uppercase tracking-wider font-semibold text-zinc-400">
+              {isLogin ? "Usuário ou E-mail" : "Usuário"}
+            </label>
             <input
-              {...register("username", { required: "Usuário é obrigatório" })}
+              {...register("username", { 
+                required: isLogin ? "Usuário ou e-mail é obrigatório" : "Usuário é obrigatório" 
+              })}
               type="text"
               className="px-4 py-3 bg-zinc-950/60 border border-zinc-800 rounded-xl text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition duration-200"
-              placeholder="Ex: cestinha085"
+              placeholder={isLogin ? "Ex: cestinha085 ou email@email.com" : "Ex: cestinha085"}
             />
           </div>
 
