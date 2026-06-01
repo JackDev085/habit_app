@@ -34,28 +34,45 @@ export async function registerPushNotifications() {
       registration = await navigator.serviceWorker.register('/sw.js');
     }
 
-    // Wait for the service worker to become ready and get the active registration
+    // Wait for the service worker to become ready
     registration = await navigator.serviceWorker.ready;
-    
-    // Check if subscription already exists
-    let subscription = await registration.pushManager.getSubscription();
-    
-    if (!subscription) {
-      const vapidRes = await api.get('/notifications/vapid-public-key');
-      const vapidPublicKey = vapidRes.data.public_key;
-      if (!vapidPublicKey) {
-        console.error('VAPID public key not found');
-        return;
-      }
 
-      const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+    // Busca a chave pública atual do servidor
+    const vapidRes = await api.get('/notifications/vapid-public-key');
+    const vapidPublicKey = vapidRes.data.public_key;
+    if (!vapidPublicKey) {
+      console.error('VAPID public key not found');
+      return;
+    }
+
+    const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+
+    // Verifica se já existe uma assinatura no browser
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (subscription) {
+      // Compara a chave armazenada com a chave atual do servidor
+      // Se a chave VAPID rotacionou, a assinatura antiga é inválida → re-inscreve
+      const existingKeyBytes = new Uint8Array(subscription.options.applicationServerKey);
+      const keysMatch =
+        existingKeyBytes.length === convertedKey.length &&
+        existingKeyBytes.every((byte, i) => byte === convertedKey[i]);
+
+      if (!keysMatch) {
+        console.log('Chave VAPID mudou — cancelando assinatura antiga e re-inscrevendo...');
+        await subscription.unsubscribe();
+        subscription = null;
+      }
+    }
+
+    if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: convertedKey
       });
     }
 
-    // Always send/update subscription details to backend in case it changed or for user association
+    // Envia/atualiza a assinatura no backend
     await api.post('/notifications/subscribe', subscription.toJSON());
     console.log('Push notification subscribed successfully');
   } catch (error) {
