@@ -23,13 +23,6 @@ export default function NotificationBell() {
       return;
     }
 
-    if (permission === "denied") {
-      toast.warning(
-        "As notificações estão bloqueadas no navegador. Para ativar, acesse as configurações do seu navegador e escolha 'Permitir'."
-      );
-      return;
-    }
-
     setLoading(true);
     try {
       const res = await registerPushNotifications();
@@ -39,7 +32,9 @@ export default function NotificationBell() {
       if (res.success || newPerm === "granted") {
         toast.success("Notificações push ativadas com sucesso!");
       } else if (res.permission === "denied" || newPerm === "denied") {
-        toast.error("Permissão de notificação negada.");
+        toast.warning(
+          "As notificações estão desativadas nas configurações do seu celular/navegador. Ative as permissões de notificação do app nas configurações do dispositivo para receber alertas."
+        );
       } else {
         toast.info("Solicitação de notificação cancelada ou pendente.");
       }
@@ -55,6 +50,8 @@ export default function NotificationBell() {
     return null;
   }
 
+  const isNotGranted = permission !== "granted";
+
   return (
     <button
       type="button"
@@ -63,16 +60,12 @@ export default function NotificationBell() {
       aria-label={
         permission === "granted"
           ? "Notificações ativas"
-          : permission === "denied"
-          ? "Notificações bloqueadas"
           : "Ativar notificações"
       }
       title={
         permission === "granted"
           ? "Notificações ativas (clique para sincronizar)"
-          : permission === "denied"
-          ? "Notificações bloqueadas no navegador"
-          : "Clique para ativar as notificações do app"
+          : "Notificações desativadas (clique para solicitar permissão)"
       }
       className="relative p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-900/80 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer flex items-center justify-center"
     >
@@ -101,30 +94,12 @@ export default function NotificationBell() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
         </div>
-      ) : permission === "denied" ? (
-        // Sino Bloqueado (com risco)
-        <div className="relative flex items-center justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-zinc-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13.828 10.172a4 4 0 00-5.656 0m-2.122 2.122a7 7 0 00-.471 6.706M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9m-6-10l12 12"
-            />
-          </svg>
-        </div>
       ) : (
-        // Sino Pendente (Sino com um X conforme requisitado)
+        // Sino Desativado/Pendente/Negado (Sino com X Vermelho destacado)
         <div className="relative flex items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-zinc-300"
+            className={`h-6 w-6 ${permission === "denied" ? "text-rose-400" : "text-zinc-300"}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -136,7 +111,7 @@ export default function NotificationBell() {
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
             />
           </svg>
-          {/* Badge 'X' */}
+          {/* Badge 'X' Vermelho */}
           <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white shadow ring-2 ring-zinc-950">
             ✕
           </span>
