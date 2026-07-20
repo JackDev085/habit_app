@@ -15,17 +15,24 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+export function getNotificationPermission() {
+  if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return 'unsupported';
+  }
+  return Notification.permission; // 'granted', 'denied', or 'default'
+}
+
 export async function registerPushNotifications() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
     console.warn('Push notifications are not supported on this browser');
-    return;
+    return { success: false, permission: 'unsupported' };
   }
 
   try {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
       console.log('Permission not granted for notifications');
-      return;
+      return { success: false, permission };
     }
 
     let registration = await navigator.serviceWorker.getRegistration();
@@ -42,7 +49,7 @@ export async function registerPushNotifications() {
     const vapidPublicKey = vapidRes.data.public_key;
     if (!vapidPublicKey) {
       console.error('VAPID public key not found');
-      return;
+      return { success: false, permission, error: 'Chave VAPID não encontrada' };
     }
 
     const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
@@ -75,7 +82,10 @@ export async function registerPushNotifications() {
     // Envia/atualiza a assinatura no backend
     await api.post('/notifications/subscribe', subscription.toJSON());
     console.log('Push notification subscribed successfully');
+    return { success: true, permission: 'granted' };
   } catch (error) {
     console.error('Error during push subscription:', error);
+    return { success: false, permission: Notification.permission, error };
   }
 }
+

@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
+import NotificationBell from "../components/NotificationBell";
 
 export default function Navbar() {
   const { user, logout } = useAuth(null);
@@ -25,77 +26,84 @@ export default function Navbar() {
     <>
       <header className="sticky top-0 z-40 w-full bg-black/80 backdrop-blur-md border-b border-zinc-900 px-6 md:px-16 py-4 flex items-center justify-between text-white transition-all">
         {/* Logo */}
-        <Link to="/" className="tracking-wide uppercase hover:opacity-90 transition-opacity">
+        <Link to="/" className="tracking-wide uppercase hover:opacity-90 transition-opacity flex items-center">
           <img className="h-9" src="/logo.svg" alt="Load Basketball" />
         </Link>
 
-        {/* Desktop Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm uppercase tracking-wider font-bold text-zinc-300">
-          {user ? (
-            <>
-              {user.is_admin && (
+        {/* Right side controls (Notification Bell + Desktop Nav + Mobile Hamburger) */}
+        <div className="flex items-center gap-4">
+          {/* Notification Bell - ALWAYS visible on mobile & desktop */}
+          <NotificationBell />
+
+          {/* Desktop Links */}
+          <nav className="hidden md:flex items-center gap-8 text-sm uppercase tracking-wider font-bold text-zinc-300">
+            {user ? (
+              <>
+                {user.is_admin && (
+                  <Link
+                    to="/admin"
+                    className={`hover:text-emerald-400 transition ${location.pathname === "/admin" ? "text-emerald-400 font-extrabold" : ""}`}
+                  >
+                    Painel Admin
+                  </Link>
+                )}
+                
+                {user.username && (
+                  <Link
+                    to={`/dash?user=${user.username}`}
+                    className={`hover:text-emerald-400 transition ${location.pathname === "/dash" ? "text-emerald-400 font-extrabold" : ""}`}
+                  >
+                    Meu Dash
+                  </Link>
+                )}
+
                 <Link
-                  to="/admin"
-                  className={`hover:text-emerald-400 transition ${location.pathname === "/admin" ? "text-emerald-400 font-extrabold" : ""}`}
+                  to="/home"
+                  className={`hover:text-emerald-400 transition ${location.pathname === "/home" ? "text-emerald-400 font-extrabold" : ""}`}
                 >
-                  Painel Admin
+                  Início
                 </Link>
-              )}
-              
-              {user.username && (
-                <Link
-                  to={`/dash?user=${user.username}`}
-                  className={`hover:text-emerald-400 transition ${location.pathname === "/dash" ? "text-emerald-400 font-extrabold" : ""}`}
+
+                <button
+                  onClick={logout}
+                  className="hover:text-emerald-400 transition cursor-pointer text-sm uppercase tracking-wider font-bold text-zinc-400"
                 >
-                  Meu Dash
-                </Link>
-              )}
-
-              <Link
-                to="/home"
-                className={`hover:text-emerald-400 transition ${location.pathname === "/home" ? "text-emerald-400 font-extrabold" : ""}`}
-              >
-                Início
-              </Link>
-
-              <button
-                onClick={logout}
-                className="hover:text-emerald-400 transition cursor-pointer text-sm uppercase tracking-wider font-bold text-zinc-400"
-              >
-                Sair
-              </button>
-            </>
-          ) : (
-            <Link
-              to="/auth"
-              className="px-4 py-2 rounded-lg bg-emerald-500 text-black hover:bg-emerald-400 transition font-bold"
-            >
-              Entrar
-            </Link>
-          )}
-        </nav>
-
-        {/* Mobile hamburger */}
-        <div className="md:hidden">
-          <button
-            aria-controls="mobile-menu"
-            aria-expanded={open}
-            aria-label={open ? "Fechar menu" : "Abrir menu"}
-            onClick={() => setOpen((s) => !s)}
-            className="p-2 pr-0 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-zinc-300 hover:text-white"
-          >
-            {!open ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+                  Sair
+                </button>
+              </>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <Link
+                to="/auth"
+                className="px-4 py-2 rounded-lg bg-emerald-500 text-black hover:bg-emerald-400 transition font-bold"
+              >
+                Entrar
+              </Link>
             )}
-          </button>
+          </nav>
+
+          {/* Mobile hamburger */}
+          <div className="md:hidden flex items-center">
+            <button
+              aria-controls="mobile-menu"
+              aria-expanded={open}
+              aria-label={open ? "Fechar menu" : "Abrir menu"}
+              onClick={() => setOpen((s) => !s)}
+              className="p-2 pr-0 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-zinc-300 hover:text-white"
+            >
+              {!open ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </header>
+
 
       {/* Mobile menu panel - rendered outside header to avoid backdrop-filter fixed positioning containment */}
       {open && (

@@ -1,12 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../../../api/api";
 import { toast } from "react-toastify";
 
 export default function SendNotificationModal({ open, onClose }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [targetType, setTargetType] = useState("all"); // "all" | "group" | "user"
+  const [targetGroupId, setTargetGroupId] = useState("");
   const [targetUsername, setTargetUsername] = useState("");
+  const [groups, setGroups] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setLoadingGroups(true);
+      api
+        .get("/groups/")
+        .then((res) => setGroups(res.data || []))
+        .catch((err) => console.error("Erro ao carregar grupos:", err))
+        .finally(() => setLoadingGroups(false));
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -17,17 +32,30 @@ export default function SendNotificationModal({ open, onClose }) {
       return;
     }
 
+    if (targetType === "group" && !targetGroupId) {
+      toast.warning("Selecione um grupo de destino.");
+      return;
+    }
+
+    if (targetType === "user" && !targetUsername.trim()) {
+      toast.warning("Informe o nome de usuário de destino.");
+      return;
+    }
+
     setSending(true);
     try {
       await api.post("/notifications/send", {
         title,
         body,
-        target_username: targetUsername.trim() || null,
+        target_username: targetType === "user" ? targetUsername.trim() : null,
+        target_group_id: targetType === "group" ? Number(targetGroupId) : null,
       });
       toast.success("Notificação enviada com sucesso!");
       setTitle("");
       setBody("");
       setTargetUsername("");
+      setTargetGroupId("");
+      setTargetType("all");
       onClose();
     } catch (err) {
       console.error(err);
@@ -53,7 +81,7 @@ export default function SendNotificationModal({ open, onClose }) {
             Disparar Notificação
           </h3>
           <p className="text-xs text-zinc-400 mt-1">
-            Envie alertas push diretamente para os dispositivos dos atletas que instalaram o app.
+            Envie alertas push diretamente para todos os usuários, por grupos ou atletas específicos.
           </p>
         </div>
 
@@ -88,19 +116,84 @@ export default function SendNotificationModal({ open, onClose }) {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
-              Destinatário Especial (Opcional)
+              Público Alvo
             </label>
-            <input
-              type="text"
-              value={targetUsername}
-              onChange={(e) => setTargetUsername(e.target.value)}
-              placeholder="Deixe em branco para enviar a TODOS"
-              className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition"
-            />
-            <span className="text-[10px] text-zinc-500 italic">
-              Insira o username do atleta (ex: jackson) para direcionar apenas a ele.
-            </span>
+            <div className="grid grid-cols-3 gap-2 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setTargetType("all")}
+                className={`py-2 text-[11px] font-bold rounded-lg transition cursor-pointer ${
+                  targetType === "all"
+                    ? "bg-emerald-500 text-black shadow"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                Todos
+              </button>
+              <button
+                type="button"
+                onClick={() => setTargetType("group")}
+                className={`py-2 text-[11px] font-bold rounded-lg transition cursor-pointer ${
+                  targetType === "group"
+                    ? "bg-emerald-500 text-black shadow"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                Por Grupo
+              </button>
+              <button
+                type="button"
+                onClick={() => setTargetType("user")}
+                className={`py-2 text-[11px] font-bold rounded-lg transition cursor-pointer ${
+                  targetType === "user"
+                    ? "bg-emerald-500 text-black shadow"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                Usuário
+              </button>
+            </div>
           </div>
+
+          {targetType === "group" && (
+            <div className="flex flex-col gap-1.5 animate-fadeIn">
+              <label className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+                Selecione o Grupo
+              </label>
+              <select
+                value={targetGroupId}
+                onChange={(e) => setTargetGroupId(e.target.value)}
+                className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition cursor-pointer"
+                required
+              >
+                <option value="">-- Escolha um grupo --</option>
+                {groups.map((grp) => (
+                  <option key={grp.id} value={grp.id}>
+                    {grp.name}
+                  </option>
+                ))}
+              </select>
+              {loadingGroups && (
+                <span className="text-[10px] text-zinc-500">Carregando grupos...</span>
+              )}
+            </div>
+          )}
+
+          {targetType === "user" && (
+            <div className="flex flex-col gap-1.5 animate-fadeIn">
+              <label className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+                Username do Atleta
+              </label>
+              <input
+                type="text"
+                value={targetUsername}
+                onChange={(e) => setTargetUsername(e.target.value)}
+                placeholder="ex: jackson"
+                className="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition"
+                required
+              />
+            </div>
+          )}
 
           <div className="flex items-center justify-end gap-3 mt-2">
             <button
@@ -131,3 +224,4 @@ export default function SendNotificationModal({ open, onClose }) {
     </div>
   );
 }
+
