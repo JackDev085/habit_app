@@ -2,6 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
+// Error handling & Logging
+import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
+import { initGlobalErrorListeners } from "./utils/logger.js";
+
 // Componentes
 import App from "./App.jsx";
 import AuthProvider from "./context/AuthContext.jsx";
@@ -10,6 +14,9 @@ import Init from "./components/Init.jsx";
 import Home from "./components/Home.jsx";
 import AdminView from "./components/Admin.jsx";
 import UserDash from "./components/UserDash.jsx";
+
+// Inicializa captura global de erros no frontend
+initGlobalErrorListeners();
 
 // Configure as rotas
 const router = createBrowserRouter([
@@ -43,7 +50,12 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <AuthProvider>
-    <RouterProvider router={router} />
-  </AuthProvider>,
+  <React.StrictMode>
+    <ErrorBoundary>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ErrorBoundary>
+  </React.StrictMode>,
 );
+

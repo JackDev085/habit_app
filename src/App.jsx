@@ -13,9 +13,12 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      registerPushNotifications();
+      registerPushNotifications({ promptUser: false }).catch((err) => {
+        console.warn("Auto push subscription sync ignored:", err);
+      });
     }
   }, [user]);
+
 
   return (
     <>

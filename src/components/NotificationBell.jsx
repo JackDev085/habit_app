@@ -25,8 +25,9 @@ export default function NotificationBell() {
 
     setLoading(true);
     try {
-      const res = await registerPushNotifications();
+      const res = await registerPushNotifications({ promptUser: true });
       const newPerm = getNotificationPermission();
+
       setPermission(newPerm);
 
       if (res.success || newPerm === "granted") {

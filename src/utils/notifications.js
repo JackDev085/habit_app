@@ -16,22 +16,41 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export function getNotificationPermission() {
-  if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+  try {
+    if (
+      typeof window === 'undefined' ||
+      !('Notification' in window) ||
+      !('serviceWorker' in navigator) ||
+      !('PushManager' in window)
+    ) {
+      return 'unsupported';
+    }
+    return Notification.permission; // 'granted', 'denied', or 'default'
+  } catch (err) {
+    console.warn('Error checking Notification permission:', err);
     return 'unsupported';
   }
-  return Notification.permission; // 'granted', 'denied', or 'default'
 }
 
-export async function registerPushNotifications() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-    console.warn('Push notifications are not supported on this browser');
-    return { success: false, permission: 'unsupported' };
-  }
-
+export async function registerPushNotifications({ promptUser = false } = {}) {
   try {
-    const permission = await Notification.requestPermission();
+    const currentPerm = getNotificationPermission();
+
+    if (currentPerm === 'unsupported') {
+      console.warn('Push notifications are not supported on this browser/device');
+      return { success: false, permission: 'unsupported' };
+    }
+
+    let permission = currentPerm;
+
+    // Se promptUser for true (ex: clique no sino), solicita permissão.
+    // Se for falso (ex: carregamento da página), só prossegue se já tiver sido concedida previamente.
+    if (promptUser && permission === 'default') {
+      permission = await Notification.requestPermission();
+    }
+
     if (permission !== 'granted') {
-      console.log('Permission not granted for notifications');
+      console.log('Push notification permission is not granted:', permission);
       return { success: false, permission };
     }
 
@@ -46,7 +65,7 @@ export async function registerPushNotifications() {
 
     // Busca a chave pública atual do servidor
     const vapidRes = await api.get('/notifications/vapid-public-key');
-    const vapidPublicKey = vapidRes.data.public_key;
+    const vapidPublicKey = vapidRes.data?.public_key;
     if (!vapidPublicKey) {
       console.error('VAPID public key not found');
       return { success: false, permission, error: 'Chave VAPID não encontrada' };
@@ -85,7 +104,9 @@ export async function registerPushNotifications() {
     return { success: true, permission: 'granted' };
   } catch (error) {
     console.error('Error during push subscription:', error);
-    return { success: false, permission: Notification.permission, error };
+    const safePerm = getNotificationPermission();
+    return { success: false, permission: safePerm, error: error?.message || String(error) };
   }
 }
+
 
